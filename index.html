@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QR Code Scanner version 2</title>
+  <title>QR Code Scanner</title>
   <style>
     body {
       margin: 0;
@@ -47,6 +47,36 @@
       border-radius: 10px;
       font-size: 16px;
     }
+
+    #product-preview {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #product-preview img {
+      max-width: 80%;
+      border-radius: 10px;
+    }
+
+    #product-preview button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #ff5722;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -55,6 +85,10 @@
   <div id="overlay">
     <div id="info">Σαρώστε ένα QR code...</div>
   </div>
+  <div id="product-preview">
+    <img id="product-image" src="" alt="Product Preview">
+    <button id="close-preview">Κλείσιμο</button>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/jsqr"></script>
   <script>
@@ -62,6 +96,11 @@
     const canvas = document.getElementById('canvas');
     const context = canvas.getContext('2d');
     const info = document.getElementById('info');
+    const productPreview = document.getElementById('product-preview');
+    const productImage = document.getElementById('product-image');
+    const closePreview = document.getElementById('close-preview');
+
+    let currentQRCode = null;
 
     // Έλεγχος αν το getUserMedia υποστηρίζεται
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -90,14 +129,28 @@
         const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
         const qrCode = jsQR(imageData.data, imageData.width, imageData.height);
 
-        if (qrCode) {
-          info.textContent = `QR Code: ${qrCode.data}`;
-        } else {
-          info.textContent = 'Σαρώστε ένα QR code...';
+        if (qrCode && qrCode.data !== currentQRCode) {
+          currentQRCode = qrCode.data;
+          showProductPreview(qrCode.data);
+        } else if (!qrCode && currentQRCode) {
+          hideProductPreview();
+          currentQRCode = null;
         }
       }
       requestAnimationFrame(scanQRCode);
     }
+
+    function showProductPreview(data) {
+      productImage.src = data; // Το URL της εικόνας από το QR Code
+      productPreview.style.display = 'flex';
+    }
+
+    function hideProductPreview() {
+      productPreview.style.display = 'none';
+      productImage.src = '';
+    }
+
+    closePreview.addEventListener('click', hideProductPreview);
 
     video.addEventListener('play', () => {
       scanQRCode();
