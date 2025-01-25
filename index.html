@@ -1,134 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Scanner with Gift Box 2</title>
-    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-            background-color: #f9f9f9;
-        }
-        #scanner {
-            width: 100%;
-            max-width: 400px;
-            margin: 20px auto;
-        }
-        #product-info {
-            margin-top: 20px;
-            padding: 15px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-        #gift-box {
-            margin: 20px auto;
-            width: 100px;
-            height: 100px;
-            background: url('https://img.icons8.com/external-flatart-icons-outline-flatarticons/64/000000/external-gift-christmas-flatart-icons-outline-flatarticons.png') center/cover;
-            cursor: pointer;
-            display: none;
-        }
-        #coupon {
-            display: none;
-            margin-top: 20px;
-            padding: 15px;
-            background: #fffae6;
-            border: 1px dashed #f5a623;
-            color: #f57c00;
-            font-weight: bold;
-            border-radius: 8px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Code Scanner</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+
+    video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    canvas {
+      display: none;
+    }
+
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #info {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+  </style>
 </head>
 <body>
-    <h1>QR Scanner with Gift Box</h1>
-    <div id="scanner"></div>
+  <video id="camera" autoplay></video>
+  <canvas id="canvas"></canvas>
+  <div id="overlay">
+    <div id="info">Σαρώστε ένα QR code...</div>
+  </div>
 
-    <div id="product-info">
-        <h2>Πληροφορίες Προϊόντος</h2>
-        <p id="product-name">Σκανάρετε ένα προϊόν...</p>
-        <p id="product-price"></p>
-        <p id="product-description"></p>
-    </div>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr"></script>
+  <script>
+    const video = document.getElementById('camera');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+    const info = document.getElementById('info');
 
-    <div id="gift-box" onclick="openGift()"></div>
-    <div id="coupon">Συγχαρητήρια! Κέρδισες -10% έκπτωση στα καλλυντικά!</div>
+    // Ζητάμε πρόσβαση στην κάμερα
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      .then((stream) => {
+        video.srcObject = stream;
+      })
+      .catch((err) => {
+        console.error('Σφάλμα πρόσβασης στην κάμερα:', err);
+        info.textContent = 'Δεν ήταν δυνατή η πρόσβαση στην κάμερα.';
+      });
 
-    <script>
-        const productDatabase = {
-            "12345": {
-                name: "Κρέμα Προσώπου",
-                price: "15€",
-                description: "Ενυδατική κρέμα για όλους τους τύπους δέρματος."
-            },
-            "67890": {
-                name: "Βιταμίνη C",
-                price: "10€",
-                description: "Συμπλήρωμα βιταμίνης C για ενίσχυση του ανοσοποιητικού."
-            },
-            "11111": {
-                name: "Αντηλιακή Κρέμα",
-                price: "20€",
-                description: "Προστασία από UVA/UVB με ενυδατική δράση."
-            }
-        };
+    function scanQRCode() {
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        let scanCount = 0; // Μετρητής για σαρώσεις
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        const qrCode = jsQR(imageData.data, imageData.width, imageData.height);
 
-        function onScanSuccess(decodedText) {
-            if (productDatabase[decodedText]) {
-                const product = productDatabase[decodedText];
-                document.getElementById("product-name").innerText = product.name;
-                document.getElementById("product-price").innerText = `Τιμή: ${product.price}`;
-                document.getElementById("product-description").innerText = product.description;
-
-                scanCount++;
-
-                // Εμφάνιση κουτιού-δώρου κάθε 3 σαρώσεις
-                if (scanCount % 3 === 0) {
-                    document.getElementById("gift-box").style.display = "block";
-                }
-            } else {
-                alert("Το προϊόν δεν βρέθηκε στη βάση δεδομένων.");
-            }
+        if (qrCode) {
+          info.textContent = `QR Code: ${qrCode.data}`;
+        } else {
+          info.textContent = 'Σαρώστε ένα QR code...';
         }
+      }
+      requestAnimationFrame(scanQRCode);
+    }
 
-        function onScanFailure(error) {
-            console.warn(`QR scan error: ${error}`);
-        }
-
-        // Ανίχνευση καμερών και εκκίνηση QR scanner
-        Html5Qrcode.getCameras().then(devices => {
-            if (devices && devices.length) {
-                const cameraId = devices[0].id; // Επιλέγει την πρώτη διαθέσιμη κάμερα
-                const html5QrCode = new Html5Qrcode("scanner");
-                html5QrCode.start(
-                    cameraId,
-                    {
-                        fps: 10,
-                        qrbox: { width: 250, height: 250 }
-                    },
-                    onScanSuccess,
-                    onScanFailure
-                ).catch(err => {
-                    console.error("Σφάλμα εκκίνησης της κάμερας:", err);
-                });
-            } else {
-                alert("Δεν βρέθηκαν διαθέσιμες κάμερες.");
-            }
-        }).catch(err => {
-            console.error("Σφάλμα κατά την ανίχνευση καμερών:", err);
-        });
-
-        function openGift() {
-            document.getElementById("gift-box").style.display = "none";
-            document.getElementById("coupon").style.display = "block";
-        }
-    </script>
+    video.addEventListener('play', () => {
+      scanQRCode();
+    });
+  </script>
 </body>
 </html>
