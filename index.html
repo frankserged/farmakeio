@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QR Code Scanner</title>
+  <title>QR Code Scanner version 2</title>
   <style>
     body {
       margin: 0;
@@ -63,15 +63,23 @@
     const context = canvas.getContext('2d');
     const info = document.getElementById('info');
 
-    // Ζητάμε πρόσβαση στην κάμερα
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-      .then((stream) => {
-        video.srcObject = stream;
-      })
-      .catch((err) => {
-        console.error('Σφάλμα πρόσβασης στην κάμερα:', err);
-        info.textContent = 'Δεν ήταν δυνατή η πρόσβαση στην κάμερα.';
-      });
+    // Έλεγχος αν το getUserMedia υποστηρίζεται
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      info.textContent = 'Η συσκευή σας δεν υποστηρίζει την κάμερα!';
+      alert('Η συσκευή σας δεν υποστηρίζει την κάμερα!');
+    } else {
+      // Ζητάμε πρόσβαση στην κάμερα
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: 'environment' } } })
+        .catch(() => navigator.mediaDevices.getUserMedia({ video: true }))
+        .then((stream) => {
+          video.srcObject = stream;
+        })
+        .catch((err) => {
+          console.error('Σφάλμα πρόσβασης στην κάμερα:', err);
+          info.textContent = 'Δεν ήταν δυνατή η πρόσβαση στην κάμερα.';
+          alert('Δεν ήταν δυνατή η πρόσβαση στην κάμερα.');
+        });
+    }
 
     function scanQRCode() {
       if (video.readyState === video.HAVE_ENOUGH_DATA) {
