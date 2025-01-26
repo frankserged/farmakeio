@@ -63,14 +63,14 @@
     }
 
     #product-preview img {
-      max-width: 98%;
-      max-height: 95vh;
+      max-width: 100%;
+      max-height: 90vh;
       border-radius: 10px;
     }
   </style>
 </head>
 <body>
-  <video id="camera" autoplay></video>
+  <video id="camera" autoplay playsinline></video>
   <canvas id="canvas"></canvas>
   <div id="overlay">
     <div id="info">Σαρώστε ένα QR code...</div>
@@ -90,22 +90,16 @@
 
     let currentQRCode = null;
 
-    // Έλεγχος αν το getUserMedia υποστηρίζεται
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      info.textContent = 'Η συσκευή σας δεν υποστηρίζει την κάμερα!';
-      alert('Η συσκευή σας δεν υποστηρίζει την κάμερα!');
-    } else {
-      // Ζητάμε πρόσβαση στην κάμερα
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: 'environment' } } })
-        .catch(() => navigator.mediaDevices.getUserMedia({ video: true }))
-        .then((stream) => {
-          video.srcObject = stream;
-        })
-        .catch((err) => {
-          console.error('Σφάλμα πρόσβασης στην κάμερα:', err);
-          info.textContent = 'Δεν ήταν δυνατή η πρόσβαση στην κάμερα.';
-          alert('Δεν ήταν δυνατή η πρόσβαση στην κάμερα.');
-        });
+    async function initCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        video.srcObject = stream;
+        video.play();
+      } catch (err) {
+        console.error('Error accessing camera:', err);
+        info.textContent = 'Δεν ήταν δυνατή η πρόσβαση στην κάμερα.';
+        alert('Δεν ήταν δυνατή η πρόσβαση στην κάμερα.');
+      }
     }
 
     function scanQRCode() {
@@ -129,7 +123,7 @@
     }
 
     function showProductPreview(data) {
-      productImage.src = data; // Το URL της εικόνας από το QR Code
+      productImage.src = data; // URL από το QR Code
       productPreview.style.display = 'flex';
     }
 
@@ -141,6 +135,8 @@
     video.addEventListener('play', () => {
       scanQRCode();
     });
+
+    initCamera();
   </script>
 </body>
 </html>
