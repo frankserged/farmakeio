@@ -67,17 +67,6 @@
       max-height: 95vh;
       border-radius: 10px;
     }
-
-    #product-preview button {
-      margin-top: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: #ff5722;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
   </style>
 </head>
 <body>
@@ -88,7 +77,6 @@
   </div>
   <div id="product-preview">
     <img id="product-image" src="" alt="Product Preview">
-    <button id="close-preview">Κλείσιμο</button>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/jsqr"></script>
@@ -99,7 +87,6 @@
     const info = document.getElementById('info');
     const productPreview = document.getElementById('product-preview');
     const productImage = document.getElementById('product-image');
-    const closePreview = document.getElementById('close-preview');
 
     let currentQRCode = null;
 
@@ -150,8 +137,6 @@
       productPreview.style.display = 'none';
       productImage.src = '';
     }
-
-    closePreview.addEventListener('click', hideProductPreview);
 
     video.addEventListener('play', () => {
       scanQRCode();
