@@ -110,6 +110,17 @@
       border-radius: 10px;
       object-fit: contain;
     }
+
+    #gift-preview button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #ff5722;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -126,6 +137,7 @@
   </div>
   <div id="gift-preview">
     <img id="gift-preview-image" src="" alt="Gift Preview">
+    <button id="close-gift-preview">Κλείσιμο</button>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/jsqr"></script>
@@ -140,6 +152,7 @@
     const giftImage = document.getElementById('gift-image');
     const giftPreview = document.getElementById('gift-preview');
     const giftPreviewImage = document.getElementById('gift-preview-image');
+    const closeGiftPreview = document.getElementById('close-gift-preview');
 
     let currentQRCode = null;
     let qrScanCount = 0;
@@ -205,6 +218,12 @@
       giftPreview.style.display = 'flex';
       giftPreviewImage.src = giftPreviewURL;
     }
+
+    function hideGiftPreview() {
+      giftPreview.style.display = 'none';
+    }
+
+    closeGiftPreview.addEventListener('click', hideGiftPreview);
 
     video.addEventListener('play', () => {
       scanQRCode();
